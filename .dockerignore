@@ -1,0 +1,26 @@
+﻿# Version control
+.git
+.gitignore
+
+# Dev dependencies and lock files
+node_modules
+package-lock.json
+
+# Dev-only scripts (ngrok tunnel helper)
+call.js
+
+# Editor and OS artifacts
+.vscode
+*.log
+*.tmp
+Thumbs.db
+.DS_Store
+
+# Docker files (not needed inside image)
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# Documentation
+README.md
+*.md

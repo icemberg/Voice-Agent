@@ -1,0 +1,27 @@
+﻿version: "3.9"
+
+services:
+  kapture-mock-server:
+    build:
+      context: .
+      target: production
+      args:
+        # --- FRONTEND BUILD ARGS (baked into index.html at build time) ---
+        # These are public-facing keys visible in the browser.
+        VAPI_PUBLIC_KEY: ${VAPI_PUBLIC_KEY:-REPLACE_WITH_YOUR_VAPI_PUBLIC_KEY}
+        ASSISTANT_ID: ${ASSISTANT_ID:-REPLACE_WITH_YOUR_INBOUND_ASSISTANT_ID}
+    image: kapture-mock-server:latest
+    container_name: kapture-mock-server
+    ports:
+      - "${PORT:-3000}:3000"
+    environment:
+      # --- RUNTIME SECRET (never baked into the image) ---
+      PORT: 3000
+      VAPI_SHARED_SECRET: ${VAPI_SHARED_SECRET:-}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s

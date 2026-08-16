@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kapture Finance — Talk to Maya</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --ink: #17263D;
+            --ink-soft: #4C5C72;
+            --paper: #F4F5F1;
+            --paper-line: #DBDFD7;
+            --brass: #A9803F;
+            --brass-lt: #E7C98A;
+            --success: #2E7D32;
+            --font-display: 'Newsreader', Georgia, serif;
+            --font-body: 'IBM Plex Sans', system-ui, sans-serif;
+            --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            color-scheme: light;
+            height: 100%;
+        }
+
+        body {
+            min-height: 100vh;
+            min-height: 100svh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 24px;
+            background: var(--paper);
+            background-image: linear-gradient(var(--paper-line) 1px, transparent 1px);
+            background-size: 100% 44px;
+            font-family: var(--font-body);
+            color: var(--ink);
+            overflow-x: hidden;
+        }
+
+        .wrapper {
+            width: 100%;
+            max-width: 480px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .card {
+            width: 100%;
+            background: var(--ink);
+            color: var(--paper);
+            border-radius: 12px;
+            padding: 40px;
+            box-shadow: 0 24px 60px -20px rgba(23, 38, 61, 0.45);
+            opacity: 0;
+            transform: translateY(12px);
+            animation: rise 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes rise {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .card {
+                animation: none;
+                opacity: 1;
+                transform: none;
+            }
+        }
+
+        .eyebrow {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: var(--brass-lt);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 24px;
+        }
+
+        .eyebrow::after {
+            content: "";
+            flex: 1;
+            height: 1px;
+            background: rgba(231, 201, 138, 0.25);
+        }
+
+        h1 {
+            font-family: var(--font-display);
+            font-weight: 500;
+            font-size: clamp(28px, 5vw, 36px);
+            line-height: 1.15;
+            margin-bottom: 16px;
+            color: #ffffff;
+        }
+
+        h1 em {
+            font-style: italic;
+            color: var(--brass-lt);
+        }
+
+        p {
+            font-size: 15px;
+            line-height: 1.6;
+            color: rgba(244, 245, 241, 0.85);
+            margin-bottom: 20px;
+        }
+
+        .prep {
+            padding-top: 20px;
+            border-top: 1px solid rgba(244, 245, 241, 0.12);
+            margin-bottom: 28px;
+        }
+
+        .prep-label {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: rgba(244, 245, 241, 0.4);
+            margin-bottom: 8px;
+        }
+
+        .prep p {
+            font-size: 14px;
+            margin-bottom: 0;
+            color: rgba(244, 245, 241, 0.75);
+        }
+
+        /* Embedded Call Panel Control */
+        .voice-panel {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(244, 245, 241, 0.1);
+            border-radius: 8px;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+            text-align: center;
+        }
+
+        .voice-status {
+            font-family: var(--font-mono);
+            font-size: 12px;
+            letter-spacing: 0.05em;
+            color: var(--brass-lt);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            background-color: var(--brass-lt);
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .status-dot.active {
+            background-color: #66BB6A;
+            box-shadow: 0 0 12px #66BB6A;
+            animation: pulse 1.4s infinite ease-in-out;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 0.4;
+                transform: scale(0.9);
+            }
+
+            50% {
+                opacity: 1;
+                transform: scale(1.2);
+            }
+        }
+
+        /* Core Interactive Voice Button */
+        .call-trigger-btn {
+            width: 100%;
+            min-height: 52px;
+            background: var(--brass);
+            color: #ffffff;
+            border: none;
+            border-radius: 6px;
+            font-family: var(--font-body);
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: background 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
+            padding: 12px 24px;
+            touch-action: manipulation;
+        }
+
+        .call-trigger-btn:hover {
+            background: #bd914b;
+        }
+
+        .call-trigger-btn:active {
+            transform: scale(0.99);
+        }
+
+        .call-trigger-btn.active {
+            background: #c62828;
+        }
+
+        .call-trigger-btn svg {
+            width: 18px;
+            height: 18px;
+            fill: currentColor;
+        }
+
+        /* Audio Waveform Visualization Simulation */
+        .visualizer-container {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            height: 32px;
+            margin-top: 8px;
+        }
+
+        .visualizer-container.active {
+            display: flex;
+        }
+
+        .bar {
+            width: 3px;
+            height: 8px;
+            background-color: var(--brass-lt);
+            border-radius: 2px;
+            animation: bounce 0.1s ease-in-out infinite alternate;
+        }
+
+        .bar:nth-child(2) {
+            animation-delay: 0.15s;
+            animation-duration: 0.35s;
+        }
+
+        .bar:nth-child(3) {
+            animation-delay: 0.3s;
+            animation-duration: 0.2s;
+        }
+
+        .bar:nth-child(4) {
+            animation-delay: 0.05s;
+            animation-duration: 0.4s;
+        }
+
+        .bar:nth-child(5) {
+            animation-delay: 0.25s;
+            animation-duration: 0.25s;
+        }
+
+        @keyframes bounce {
+            from {
+                transform: scaleY(1);
+            }
+
+            to {
+                transform: scaleY(3.5);
+            }
+        }
+
+        footer {
+            padding: 0 4px;
+        }
+
+        footer p {
+            font-size: 12px;
+            line-height: 1.6;
+            color: var(--ink-soft);
+            margin: 0;
+        }
+
+        :focus-visible {
+            outline: 2px solid var(--brass);
+            outline-offset: 3px;
+        }
+
+        @media (max-width: 440px) {
+            body {
+                padding: 16px;
+            }
+
+            .card {
+                padding: 32px 24px;
+            }
+
+            .voice-panel {
+                padding: 18px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="wrapper">
+        <main class="card">
+            <div class="eyebrow">Kapture Finance</div>
+            <h1>Talk to <em>Maya</em> about your account.</h1>
+            <p>Maya can securely look up your loan parameters, verify current statements, or arrange an instant
+                automated balance payoff right from this interface.</p>
+
+            <div class="prep">
+                <div class="prep-label">Verification Prep</div>
+                <p>Keep your registered mobile number handy. Maya completes credential confirmation inside the
+                    conversation channel before sharing sensitive accounting records.</p>
+            </div>
+
+            <!-- Action Interface Panel -->
+            <div class="voice-panel">
+                <div class="voice-status">
+                    <span class="status-dot" id="statusDot"></span>
+                    <span id="statusText">ASSISTANT READY</span>
+                </div>
+
+                <button class="call-trigger-btn" id="callToggleBtn" aria-label="Start audio call with assistant Maya">
+                    <svg id="phoneIcon" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path
+                            d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+                    </svg>
+                    <span id="btnText">Connect to Maya</span>
+                </button>
+
+                <div class="visualizer-container" id="visualizer">
+                    <div class="bar"></div>
+                    <div class="bar"></div>
+                    <div class="bar"></div>
+                    <div class="bar"></div>
+                    <div class="bar"></div>
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <p>System deployment advisory: Session audio streams are processed securely. Virtual system operations do
+                not constitute explicit formal legal or programmatic financial counseling.</p>
+        </footer>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const callToggleBtn = document.getElementById('callToggleBtn');
+            const btnText = document.getElementById('btnText');
+            const statusText = document.getElementById('statusText');
+            const statusDot = document.getElementById('statusDot');
+            const visualizer = document.getElementById('visualizer');
+            const phoneIcon = document.getElementById('phoneIcon');
+
+            let isCallActive = false;
+            let vapiInstance = null;
+
+            // Safe production configuration variables
+            const VAPI_PUBLIC_KEY = "REPLACE_WITH_YOUR_VAPI_PUBLIC_KEY";
+            const ASSISTANT_ID = "REPLACE_WITH_YOUR_INBOUND_ASSISTANT_ID";
+
+            callToggleBtn.addEventListener('click', async () => {
+                if (!isCallActive) {
+                    // Initialize simulation interface or map to client instance safely
+                    try {
+                        statusText.innerText = "CONNECTING...";
+                        statusDot.classList.add('active');
+                        callToggleBtn.style.opacity = "0.8";
+
+                        // Request microphone usage securely if running in sandbox/preview
+                        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                            await navigator.mediaDevices.getUserMedia({ audio: true });
+                        }
+
+                        // Check if full production SDK library object has been appended safely
+                        if (window.vapiSDK || window.Vapi) {
+                            const SDK = window.vapiSDK || window.Vapi;
+                            vapiInstance = SDK.run({
+                                apiKey: VAPI_PUBLIC_KEY,
+                                assistantId: ASSISTANT_ID
+                            });
+                        }
+
+                        // Transition UI cleanly to Active Call state
+                        setTimeout(() => {
+                            isCallActive = true;
+                            callToggleBtn.classList.add('active');
+                            callToggleBtn.style.opacity = "1";
+                            btnText.innerText = "End Session";
+                            statusText.innerText = "MAYA IS LISTENING";
+                            visualizer.classList.add('active');
+
+                            // Substitute dynamic SVG content to show stop action box
+                            phoneIcon.innerHTML = '<rect x="4" y="4" width="16" height="16" rx="2" ry="2" fill="none" stroke="currentColor" stroke-width="2"/>';
+                        }, 750);
+
+                    } catch (err) {
+                        console.warn("Audio node setup sequence handled:", err);
+                        statusText.innerText = "MIC ACCESS REQUIRED";
+                        statusDot.classList.remove('active');
+                        callToggleBtn.style.opacity = "1";
+                    }
+                } else {
+                    // Tear down voice session state cleanly
+                    if (vapiInstance && typeof vapiInstance.stop === 'function') {
+                        vapiInstance.stop();
+                    }
+
+                    isCallActive = false;
+                    callToggleBtn.classList.remove('active');
+                    btnText.innerText = "Connect to Maya";
+                    statusText.innerText = "ASSISTANT READY";
+                    statusDot.classList.remove('active');
+                    visualizer.classList.remove('active');
+
+                    // Revert back to original minimalist phone handle path shape
+                    phoneIcon.innerHTML = '<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>';
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>
