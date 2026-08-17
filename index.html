@@ -368,6 +368,9 @@
         </footer>
     </div>
 
+    <!-- Vapi Web SDK — loaded from CDN before inline script -->
+    <script src="https://cdn.jsdelivr.net/npm/@vapi-ai/web@latest/dist/vapi.umd.js"></script>
+
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const callToggleBtn = document.getElementById('callToggleBtn');
@@ -397,13 +400,12 @@
                             await navigator.mediaDevices.getUserMedia({ audio: true });
                         }
 
-                        // Check if full production SDK library object has been appended safely
-                        if (window.vapiSDK || window.Vapi) {
-                            const SDK = window.vapiSDK || window.Vapi;
-                            vapiInstance = SDK.run({
-                                apiKey: VAPI_PUBLIC_KEY,
-                                assistantId: ASSISTANT_ID
-                            });
+                        // Initialise the Vapi Web SDK using the modern constructor API
+                        if (window.Vapi) {
+                            vapiInstance = new window.Vapi(VAPI_PUBLIC_KEY);
+                            await vapiInstance.start(ASSISTANT_ID);
+                        } else {
+                            throw new Error('Vapi SDK failed to load. Check your network connection.');
                         }
 
                         // Transition UI cleanly to Active Call state
