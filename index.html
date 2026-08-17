@@ -496,8 +496,8 @@
                         // Attach event listeners
                         attachVapiEvents(window.vapiInstance);
 
-                        // Start the voice call (object format required by html-script-tag SDK)
-                        window.vapiInstance.start({ assistantId: ASSISTANT_ID });
+                        // Start the voice call (plain string, not object)
+                        window.vapiInstance.start(ASSISTANT_ID);
 
                     } catch (err) {
                         console.warn("Call setup error:", err);
