@@ -368,8 +368,15 @@
         </footer>
     </div>
 
-    <!-- Vapi Web SDK — loaded from CDN before inline script -->
-    <script src="https://cdn.jsdelivr.net/npm/@vapi-ai/web@latest/dist/vapi.umd.js"></script>
+    <!-- Vapi Web SDK — official CDN loader -->
+    <script>
+        (function (d, t) {
+            var g = document.createElement(t), s = d.getElementsByTagName(t)[0];
+            g.src = 'https://cdn.jsdelivr.net/npm/@vapi-ai/web@2.6.2/dist/vapi.min.js';
+            g.defer = true;
+            s.parentNode.insertBefore(g, s);
+        })(document, 'script');
+    </script>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
@@ -400,13 +407,19 @@
                             await navigator.mediaDevices.getUserMedia({ audio: true });
                         }
 
-                        // Initialise the Vapi Web SDK using the modern constructor API
-                        if (window.Vapi) {
-                            vapiInstance = new window.Vapi(VAPI_PUBLIC_KEY);
-                            await vapiInstance.start(ASSISTANT_ID);
-                        } else {
-                            throw new Error('Vapi SDK failed to load. Check your network connection.');
-                        }
+                        // Wait for the deferred SDK script to be ready (max 5s)
+                        await new Promise((resolve, reject) => {
+                            if (window.Vapi) return resolve();
+                            const deadline = Date.now() + 5000;
+                            const poll = setInterval(() => {
+                                if (window.Vapi) { clearInterval(poll); resolve(); }
+                                else if (Date.now() > deadline) { clearInterval(poll); reject(new Error('Vapi SDK timed out')); }
+                            }, 100);
+                        });
+
+                        // Initialise using the @vapi-ai/web constructor API
+                        vapiInstance = new window.Vapi(VAPI_PUBLIC_KEY);
+                        await vapiInstance.start(ASSISTANT_ID);
 
                         // Transition UI cleanly to Active Call state
                         setTimeout(() => {
