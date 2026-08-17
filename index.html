@@ -391,20 +391,24 @@
             s.parentNode.insertBefore(g, s);
 
             g.onload = function () {
-                // Only pass apiKey — do NOT pass assistant here or it auto-starts a call
+                // Both apiKey and assistant are REQUIRED by vapiSDK.run()
                 window.vapiInstance = window.vapiSDK.run({
                     apiKey: VAPI_PUBLIC_KEY,
+                    assistant: ASSISTANT_ID,
                     config: {
                         hide: true,
                     },
                 });
 
-                // Attach error handler to prevent "Unhandled error" EventEmitter crashes
-                window.vapiInstance.on('error', function (err) {
-                    console.error('[Vapi error]', err);
-                });
-
-                console.log('[Vapi] SDK loaded and ready');
+                // Null-guard: run() returns null if keys are missing/invalid
+                if (window.vapiInstance && typeof window.vapiInstance.on === 'function') {
+                    window.vapiInstance.on('error', function (err) {
+                        console.error('[Vapi error]', err);
+                    });
+                    console.log('[Vapi] SDK loaded and ready');
+                } else {
+                    console.error('[Vapi] SDK init failed — check VAPI_PUBLIC_KEY and ASSISTANT_ID');
+                }
             };
         })(document, "script");
     </script>
@@ -492,8 +496,8 @@
                         // Attach event listeners
                         attachVapiEvents(window.vapiInstance);
 
-                        // Start the voice call with the assistant ID
-                        window.vapiInstance.start(ASSISTANT_ID);
+                        // Start the voice call (assistant already configured in run())
+                        window.vapiInstance.start();
 
                     } catch (err) {
                         console.warn("Call setup error:", err);
