@@ -391,16 +391,20 @@
             s.parentNode.insertBefore(g, s);
 
             g.onload = function () {
-                // vapiSDK.run() initialises the SDK and returns the vapi instance
+                // Only pass apiKey — do NOT pass assistant here or it auto-starts a call
                 window.vapiInstance = window.vapiSDK.run({
                     apiKey: VAPI_PUBLIC_KEY,
-                    assistant: ASSISTANT_ID,
                     config: {
-                        // Hide the default floating button — we trigger calls from our own UI
                         hide: true,
                     },
                 });
-                console.log('[Vapi] SDK loaded and initialised');
+
+                // Attach error handler to prevent "Unhandled error" EventEmitter crashes
+                window.vapiInstance.on('error', function (err) {
+                    console.error('[Vapi error]', err);
+                });
+
+                console.log('[Vapi] SDK loaded and ready');
             };
         })(document, "script");
     </script>
@@ -415,6 +419,50 @@
             const phoneIcon = document.getElementById('phoneIcon');
 
             let isCallActive = false;
+            let eventsAttached = false;
+
+            // Helper: transition UI to active call state
+            function setActiveUI() {
+                isCallActive = true;
+                callToggleBtn.classList.add('active');
+                callToggleBtn.style.opacity = "1";
+                btnText.innerText = "End Session";
+                statusText.innerText = "MAYA IS LISTENING";
+                statusDot.classList.add('active');
+                visualizer.classList.add('active');
+                phoneIcon.innerHTML = '<rect x="4" y="4" width="16" height="16" rx="2" ry="2" fill="none" stroke="currentColor" stroke-width="2"/>';
+            }
+
+            // Helper: transition UI to idle state
+            function setIdleUI(msg) {
+                isCallActive = false;
+                callToggleBtn.classList.remove('active');
+                callToggleBtn.style.opacity = "1";
+                btnText.innerText = "Connect to Maya";
+                statusText.innerText = msg || "ASSISTANT READY";
+                statusDot.classList.remove('active');
+                visualizer.classList.remove('active');
+                phoneIcon.innerHTML = '<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>';
+            }
+
+            // Wire up Vapi event listeners (once only)
+            function attachVapiEvents(vapi) {
+                if (eventsAttached) return;
+                eventsAttached = true;
+
+                vapi.on('call-start', () => {
+                    console.log('[Vapi] Call started');
+                    setActiveUI();
+                });
+                vapi.on('call-end', () => {
+                    console.log('[Vapi] Call ended');
+                    setIdleUI('SESSION ENDED');
+                });
+                vapi.on('error', (err) => {
+                    console.error('[Vapi] Error:', err);
+                    setIdleUI('CONNECTION ERROR');
+                });
+            }
 
             callToggleBtn.addEventListener('click', async () => {
                 if (!isCallActive) {
@@ -441,45 +489,26 @@
                             }, 200);
                         });
 
-                        // Start the voice call via the Vapi SDK instance
-                        window.vapiInstance.start();
+                        // Attach event listeners
+                        attachVapiEvents(window.vapiInstance);
 
-                        // Transition UI to Active Call state
-                        isCallActive = true;
-                        callToggleBtn.classList.add('active');
-                        callToggleBtn.style.opacity = "1";
-                        btnText.innerText = "End Session";
-                        statusText.innerText = "MAYA IS LISTENING";
-                        visualizer.classList.add('active');
-
-                        // Swap phone icon → stop icon
-                        phoneIcon.innerHTML = '<rect x="4" y="4" width="16" height="16" rx="2" ry="2" fill="none" stroke="currentColor" stroke-width="2"/>';
+                        // Start the voice call with the assistant ID
+                        window.vapiInstance.start(ASSISTANT_ID);
 
                     } catch (err) {
                         console.warn("Call setup error:", err);
-                        statusText.innerText = err.message.includes("SDK") ? "SDK LOAD ERROR" : "MIC ACCESS REQUIRED";
-                        statusDot.classList.remove('active');
-                        callToggleBtn.style.opacity = "1";
+                        setIdleUI(err.message.includes("SDK") ? "SDK LOAD ERROR" : "MIC ACCESS REQUIRED");
                     }
                 } else {
-                    // End the call
+                    // End the call — call-end event will reset the UI
                     if (window.vapiInstance && typeof window.vapiInstance.stop === 'function') {
                         window.vapiInstance.stop();
                     }
-
-                    isCallActive = false;
-                    callToggleBtn.classList.remove('active');
-                    btnText.innerText = "Connect to Maya";
-                    statusText.innerText = "ASSISTANT READY";
-                    statusDot.classList.remove('active');
-                    visualizer.classList.remove('active');
-
-                    // Revert to phone icon
-                    phoneIcon.innerHTML = '<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>';
                 }
             });
         });
     </script>
 </body>
 
-</html>
+</html>
+
